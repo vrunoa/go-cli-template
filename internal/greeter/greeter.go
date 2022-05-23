@@ -2,23 +2,27 @@ package greeter
 
 import "fmt"
 
-type Greeter struct {
+type greeter struct {
 	Lang string
 }
 
-func New(lang string) *Greeter {
-	return &Greeter{
+func New(lang string) *greeter {
+	return &greeter{
 		Lang: lang,
 	}
 }
 
-func (g *Greeter) Hello() {
+func (g *greeter) What() string {
 	switch g.Lang {
 	case "es":
-		fmt.Println("hola")
+		return "hola"
 	case "en":
-		fmt.Println("hello")
+		return "hello"
 	default:
-		fmt.Println("01001000 01100101 01101100")
+		return "01001000 01100101 01101100"
 	}
+}
+
+func (g *greeter) Hello() {
+	fmt.Println(g.What())
 }
