@@ -1,0 +1,64 @@
+name: tests pipeline
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.18
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Lint project
+        run: |
+          go vet ./...
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.46.1
+          golangci-lint run ./... -v
+
+  unit:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.18
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          go install github.com/mcubik/goverreport@latest
+
+      - name: Unit tests
+        run: |
+          go test -coverprofile=coverage.out ./... -v
+          goverreport -sort=block -order=desc -threshold=80
+
+  build:
+    needs:
+      - lint
+      - unit
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.18
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Build binary
+        run: go build ./cmd/go-cli-template/go-cli-template.go
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v2
+        with:
+          name: go-cli-template-bin
+          path: |
+            go-cli-template
